@@ -930,25 +930,25 @@ func TestUnreliableChurn(t *testing.T) {
 
 
 
-// func TestAll(t *testing.T) {
-// 	TestInitialElection(t)
-// 	TestReElection(t)
-// 	TestBasicAgree(t)
-// 	TestFailAgree(t)
-// 	TestFailNoAgree(t)
-// 	TestConcurrentStarts(t)
-// 	TestRejoin(t)
-// 	TestBackup(t)
-// 	TestCount(t)
-// 	TestPersist1(t)
-// 	TestPersist2(t)
-// 	TestPersist3(t)
-// 	TestFigure8(t)
-// 	TestUnreliableAgree(t)
-// 	TestFigure8Unreliable(t)
-// 	TestReliableChurn(t)
-// 	TestUnreliableChurn(t)
-// }
+func TestAll(t *testing.T) {
+	TestInitialElection(t)
+	TestReElection(t)
+	TestBasicAgree(t)
+	TestFailAgree(t)
+	TestFailNoAgree(t)
+	TestConcurrentStarts(t)
+	TestRejoin(t)
+	TestBackup(t)
+	TestCount(t)
+	TestPersist1(t)
+	TestPersist2(t)
+	TestPersist3(t)
+	TestFigure8(t)
+	TestUnreliableAgree(t)
+	TestFigure8Unreliable(t)
+	TestReliableChurn(t)
+	TestUnreliableChurn(t)
+}
 
 func TestAssignA(t *testing.T) {
 	TestInitialElection(t)
@@ -969,9 +969,4 @@ func TestAssignC(t *testing.T) {
 	TestPersist1(t)
 	TestPersist2(t)
 	TestPersist3(t)
-	TestFigure8(t)
-	TestUnreliableAgree(t)
-	TestFigure8Unreliable(t)
-	TestReliableChurn(t)
-	TestUnreliableChurn(t)
 }
