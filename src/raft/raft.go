@@ -101,13 +101,6 @@ func (rf *Raft) GetState() (int, bool) {
 //
 func (rf *Raft) persist() {
 	// Your code here.
-	// Example:
-	// w := new(bytes.Buffer)
-	// e := gob.NewEncoder(w)
-	// e.Encode(rf.xxx)
-	// e.Encode(rf.yyy)
-	// data := w.Bytes()
-	// rf.persister.SaveRaftState(data)
 	w := new(bytes.Buffer)
     e := gob.NewEncoder(w)
     e.Encode(rf.currentTerm)
@@ -122,11 +115,6 @@ func (rf *Raft) persist() {
 //
 func (rf *Raft) readPersist(data []byte) {
 	// Your code here.
-	// Example:
-	// r := bytes.NewBuffer(data)
-	// d := gob.NewDecoder(r)
-	// d.Decode(&rf.xxx)
-	// d.Decode(&rf.yyy)
 	if data == nil || len(data) < 1 { return }
 
     rf.mu.Lock()
@@ -213,7 +201,7 @@ func (rf *Raft) lead() {
 	}
 }
 
-func (rf *Raft) commiting(){
+func (rf *Raft) committing(){
 	for {
 		select {
 		case <- rf.commitLog:
@@ -237,7 +225,8 @@ func (rf *Raft) tranState(state StateType){
 	var name = [3]string{"Follower", "Candidate", "Leader"}
 	if DEBUG { fmt.Printf("#%d Change to %s\n", rf.me, name[state]) }
 	rf.state = state
-	// for i := 0; i < len(rf.peers); i++ { rf.nextIndex[i] = 1 }
+	for i := 0; i < len(rf.peers); i++ { rf.nextIndex[i] = 1 }
+	rf.persist()
 	switch state {
 	case Follower:
 	case Candidate:
@@ -256,6 +245,7 @@ func (rf *Raft) elecLeader(){
 	lastLog := rf.log[len(rf.log) - 1]
 	votes, request := 1, RequestVoteArgs{rf.currentTerm, rf.me, len(rf.log), lastLog.Term}
 	rf.votedFor = rf.me
+	rf.persist()
 	if DEBUG { fmt.Printf("#%d(%d) is Collecting Votes\n", rf.me, rf.currentTerm) }
 	for i := 0; i < len(rf.peers); i++ {
 		if i != rf.me {
@@ -374,7 +364,6 @@ type AppendEntriesReply struct {
 }
 
 func (rf *Raft) AppendEntries(args AppendEntriesArgs, reply *AppendEntriesReply) {
-	
 	// Reject legacy append entries requests
 	if (args.Term < rf.currentTerm){
 		reply.Term = rf.currentTerm
@@ -415,7 +404,7 @@ func (rf *Raft) AppendEntries(args AppendEntriesArgs, reply *AppendEntriesReply)
 		rf.log = append(rf.log[: args.PrevLogIndex + i + 1], args.Entries[i :]...)
 		if DEBUG { fmt.Printf("Receive %d(%d) -> %d(%d) : Append %d logs\n", args.LeaderID, args.Term, rf.me, rf.currentTerm, len(args.Entries) - i) }
 	}
-
+	rf.persist()
 	// Apply commits
 	if args.LeaderCommit > rf.commitIndex {
 		for i := rf.commitIndex + 1; i <= args.LeaderCommit && i < len(rf.log); i++ {
@@ -456,6 +445,7 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
 		rf.log = append(rf.log, Entry{term, command})
 		rf.nextIndex[rf.me]++
 		rf.matchIndex[rf.me] = rf.nextIndex[rf.me] - 1
+		rf.persist()
 		if DEBUG { fmt.Printf("Leader #%d: Receive New Log $%d(%d)\n", rf.me, rf.matchIndex[rf.me], rf.log[rf.matchIndex[rf.me]].Command) }
 	}
 	rf.mu.Unlock()
@@ -509,7 +499,7 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	rf.commitChan = applyCh
 	// Run Raft Thread
 	go rf.working()
-	go rf.commiting()
+	go rf.committing()
 	// initialize from state persisted before a crash
 	rf.readPersist(persister.ReadRaftState())
 	return rf
